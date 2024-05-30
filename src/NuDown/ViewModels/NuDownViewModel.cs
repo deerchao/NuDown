@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NuDown.Models;
 using NuGet.Packaging;
 
 namespace NuDown.ViewModels;
@@ -20,9 +21,9 @@ public partial class NuDownViewModel : ViewModelBase
 
     [ObservableProperty] private bool _includePreview;
 
-    [ObservableProperty] private PackageSearchViewModel? _selectedPackage;
+    [ObservableProperty] private PackageSummary? _selectedPackage;
 
-    [ObservableProperty] private PackageReleaseViewModel? _selectedRelease;
+    [ObservableProperty] private PackageRelease? _selectedRelease;
 
     [ObservableProperty] private bool _canDownload;
 
@@ -32,7 +33,7 @@ public partial class NuDownViewModel : ViewModelBase
 
     [ObservableProperty] private bool _releasesLoading;
 
-    [ObservableProperty] private PackageReleaseViewModel? _downloadingRelease;
+    [ObservableProperty] private PackageRelease? _downloadingRelease;
 
     [ObservableProperty] private string _downloadFolder;
 
@@ -46,9 +47,9 @@ public partial class NuDownViewModel : ViewModelBase
         RepositoryUrl = config.RepositoryUrl;
     }
 
-    public ObservableCollection<PackageSearchViewModel> Packages { get; } = new();
+    public ObservableCollection<PackageSummary> Packages { get; } = new();
 
-    public ObservableCollection<PackageReleaseViewModel> Releases { get; } = new();
+    public ObservableCollection<PackageRelease> Releases { get; } = new();
 
 
     [RelayCommand(CanExecute = nameof(CanDownload))]
@@ -82,7 +83,7 @@ public partial class NuDownViewModel : ViewModelBase
         PerformSearch(Query, value, _packagesLoadCts.Token);
     }
 
-    partial void OnSelectedPackageChanged(PackageSearchViewModel? value)
+    partial void OnSelectedPackageChanged(PackageSummary? value)
     {
         _releasesLoadCts?.Cancel();
         _releasesLoadCts = null;
@@ -100,12 +101,12 @@ public partial class NuDownViewModel : ViewModelBase
         }
     }
 
-    partial void OnSelectedReleaseChanged(PackageReleaseViewModel? value)
+    partial void OnSelectedReleaseChanged(PackageRelease? value)
     {
         CanDownload = DownloadingRelease is null && value is not null;
     }
 
-    partial void OnDownloadingReleaseChanged(PackageReleaseViewModel? value)
+    partial void OnDownloadingReleaseChanged(PackageRelease? value)
     {
         CanDownload = value is null && SelectedRelease is not null;
     }
@@ -187,7 +188,7 @@ public partial class NuDownViewModel : ViewModelBase
         }
     }
 
-    private async Task DownloadRelease(PackageReleaseViewModel release, CancellationToken cancellationToken)
+    private async Task DownloadRelease(PackageRelease release, CancellationToken cancellationToken)
     {
         DownloadingRelease = release;
 

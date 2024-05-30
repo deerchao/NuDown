@@ -1,6 +1,6 @@
-﻿namespace NuDown.ViewModels;
+﻿namespace NuDown.Models;
 
-public class PackageSearchViewModel
+public class PackageSummary
 {
     public string Id { get; init; }
 

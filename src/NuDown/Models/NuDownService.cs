@@ -5,13 +5,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using NuDown.Models;
 using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace NuDown.ViewModels;
+namespace NuDown.Models;
 
 public class NuDownService
 {
@@ -41,7 +40,7 @@ public class NuDownService
     }
 
 
-    public async Task<List<PackageSearchViewModel>> Query(string keyword, bool includePreview, int skip, int take,
+    public async Task<List<PackageSummary>> Query(string keyword, bool includePreview, int skip, int take,
         CancellationToken cancellationToken)
     {
         var repository = Repository.Factory.GetCoreV3(Config.RepositoryUrl);
@@ -56,7 +55,7 @@ public class NuDownService
             Logger,
             cancellationToken);
 
-        var items = results.Select(x => new PackageSearchViewModel
+        var items = results.Select(x => new PackageSummary
         {
             Id = x.Identity.Id,
             Version = x.Identity.Version.ToString(),
@@ -70,7 +69,7 @@ public class NuDownService
         return items.ToList();
     }
 
-    public async Task<List<PackageReleaseViewModel>> GetReleases(string packageId, bool includePreview,
+    public async Task<List<PackageRelease>> GetReleases(string packageId, bool includePreview,
         CancellationToken cancellationToken)
     {
         var cache = new SourceCacheContext();
@@ -88,7 +87,7 @@ public class NuDownService
             packages = packages.Where(x => !x.Identity.Version.IsPrerelease);
 
         var items = packages.OrderByDescending(x => x.Identity.Version)
-            .Select(x => new PackageReleaseViewModel
+            .Select(x => new PackageRelease
             {
                 Id = x.Identity.Id,
                 Version = x.Identity.Version.ToString(),
@@ -96,6 +95,7 @@ public class NuDownService
                 License = x.LicenseMetadata?.LicenseExpression.ToString() ??
                           x.LicenseUrl?.ToString() ?? x.LicenseMetadata?.License ?? "",
                 DownloadCount = x.DownloadCount ?? 0,
+                LocalExists = Exists(x.Identity.Id, x.Identity.Version.ToString()),
             });
 
         return items.ToList();
@@ -133,5 +133,13 @@ public class NuDownService
         var configFile = Path.Combine(root, "config.json");
         var json = JsonSerializer.Serialize(Config);
         File.WriteAllText(configFile, json, Encoding.UTF8);
+    }
+
+    private bool Exists(string packageId, string version)
+    {
+        var folder = Path.Combine(GetRootFolderPath(), Config.DownloadFolder);
+        var name = $"{packageId}.{version}.nupkg";
+        var path = Path.Combine(folder, name);
+        return File.Exists(path);
     }
 }
