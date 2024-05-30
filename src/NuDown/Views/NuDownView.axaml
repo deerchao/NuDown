@@ -1,0 +1,79 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:NuDown.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="NuDown.Views.NuDownView"
+             x:DataType="vm:NuDownViewModel"
+             MinWidth="640"
+             MinHeight="320">
+	<Grid ColumnDefinitions="*,*" RowDefinitions="Auto, *, Auto, Auto" Margin="15">
+		<StackPanel Orientation="Horizontal">
+			<TextBox Text="{Binding Query}" MinWidth="120" Watermark="Package keywords" Margin="5" />
+			<CheckBox IsChecked="{Binding IncludePreview}">Include prerelease</CheckBox>
+		</StackPanel>
+
+		<StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+			<Button Command="{Binding DownloadCommand}" Margin="5">Download</Button>
+			<TextBlock VerticalAlignment="Center" IsVisible="{Binding DownloadingRelease,Converter={x:Static ObjectConverters.IsNotNull}}" Margin="5">
+				Downloading:
+				<Run Text="{Binding DownloadingRelease.Id,FallbackValue=''}" />(
+				<Run Text="{Binding DownloadingRelease.Version,FallbackValue=''}" />)
+			</TextBlock>
+		</StackPanel>
+
+		<Border Grid.Row="1" Grid.Column="0" BorderThickness="1" BorderBrush="Gray" Margin="5">
+			<DockPanel>
+				<TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="5">Packages</TextBlock>
+				<TextBlock DockPanel.Dock="Top" IsVisible="{Binding PackagesLoading}"
+                           HorizontalAlignment="Center"
+                           Margin="5">
+					Loading...
+				</TextBlock>
+				<ListBox ItemsSource="{Binding Packages}" SelectedItem="{Binding SelectedPackage}"
+                         IsVisible="{Binding !PackagesLoading}">
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<StackPanel>
+								<TextBlock Text="{Binding Id}" FontWeight="Bold" />
+								<TextBlock Text="{Binding Description}"></TextBlock>
+							</StackPanel>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+			</DockPanel>
+		</Border>
+
+		<Border Grid.Row="1" Grid.Column="1" BorderThickness="1" BorderBrush="Gray" Margin="5">
+			<DockPanel>
+				<TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="5">Releases</TextBlock>
+				<TextBlock DockPanel.Dock="Top" IsVisible="{Binding ReleasesLoading}"
+                           HorizontalAlignment="Center"
+                           Margin="5">
+					Loading...
+				</TextBlock>
+				<ListBox ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}"
+                         IsVisible="{Binding !ReleasesLoading}">
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<StackPanel>
+								<TextBlock Text="{Binding Version}" FontWeight="Bold" />
+								<TextBlock>
+									Published: <Run Text="{Binding PublishDate}" />
+									License: <Run Text="{Binding  License}" />
+								</TextBlock>
+							</StackPanel>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+			</DockPanel>
+		</Border>
+
+		<TextBox Grid.Row="2" Grid.Column="0" Text="{Binding RepositoryUrl}" Watermark="Nuget Repository URL" Margin="5" />
+
+		<TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DownloadFolder}" Watermark="Storage folder" Margin="5" />
+
+		<TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Prompt}" />
+	</Grid>
+</UserControl>
